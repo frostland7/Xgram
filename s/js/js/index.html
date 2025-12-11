@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>XGRAM</title>
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/dark.css" id="theme-link">
+</head>
+<body>
+<div class="header">
+  <h1>XGRAM</h1>
+  <div id="admin-btn" class="hidden" onclick="openAdmin()">⚡ Admin</div>
+</div>
+
+<div id="chats">
+  <h2>Группы и личные чаты</h2>
+  <ul id="chat-list"></ul>
+</div>
+
+<div id="channels">
+  <h2>Каналы</h2>
+  <ul id="channel-list"></ul>
+</div>
+
+<script type="module">
+import { db } from './js/firebase.js';
+import { ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const currentUser = localStorage.getItem("currentUser");
+
+// Кнопка админки для cell
+if (currentUser === "cell") {
+  document.getElementById("admin-btn").classList.remove("hidden");
+}
+window.openAdmin = () => window.location.href = "admin.html";
+
+// Загрузка чатов
+async function loadChats() {
+  const snapshot = await get(ref(db, 'chats'));
+  const chatList = document.getElementById("chat-list");
+  chatList.innerHTML = "";
+  if (snapshot.exists()) {
+    Object.entries(snapshot.val()).forEach(([id, chat]) => {
+      if (chat.members && chat.members.includes(currentUser)) {
+        const li = document.createElement("li");
+        li.innerText = chat.name + (chat.type === "group" ? " [Группа]" : "");
+        li.onclick = () => window.location.href = "chat.html?chat=" + id;
+        chatList.appendChild(li);
+      }
+    });
+  }
+}
+
+// Загрузка каналов
+async function loadChannels() {
+  const snapshot = await get(ref(db, 'channels'));
+  const channelList = document.getElementById("channel-list");
+  channelList.innerHTML = "";
+  if (snapshot.exists()) {
+    Object.entries(snapshot.val()).forEach(([id, channel]) => {
+      const li = document.createElement("li");
+      li.innerText = channel.name;
+      li.onclick = () => window.location.href = "channel.html?channel=" + id;
+      channelList.appendChild(li);
+    });
+  }
+}
+
+loadChats();
+loadChannels();
+</script>
+<script type="module" src="js/theme.js"></script>
+</body>
+</html>

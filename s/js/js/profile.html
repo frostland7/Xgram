@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Профиль XGRAM</title>
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/dark.css" id="theme-link">
+</head>
+<body>
+<div class="header">
+  <h1>Профиль</h1>
+  <div id="admin-btn" class="hidden" onclick="openAdmin()">⚡ Admin</div>
+</div>
+
+<div id="profile-info"></div>
+<div>
+  <h3>Подарки</h3>
+  <ul id="gift-list"></ul>
+</div>
+
+<script type="module">
+import { db } from './js/firebase.js';
+import { ref, get, set, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const currentUser = localStorage.getItem("currentUser");
+if (currentUser === "cell") document.getElementById("admin-btn").classList.remove("hidden");
+window.openAdmin = () => window.location.href = "admin.html";
+
+async function loadProfile() {
+  const userSnap = await get(ref(db, 'users/' + currentUser));
+  if (!userSnap.exists()) return;
+  const data = userSnap.val();
+  document.getElementById("profile-info").innerHTML = `
+    <p>Ник: ${data.login}</p>
+    <p>Звёзды: ${data.stars}</p>
+    <p>Подарки: ${data.gifts}</p>
+    <p>Статус: ${data.status}</p>
+  `;
+}
+
+async function loadGifts() {
+  const gifts = ["💎 Diamond Heart","🔥 Flame Dragon","👑 King Crown","🎆 Galaxy Burst","🌙 Moon Aura","💫 Star Shower","🎁 Magic Box","🍀 Lucky Leaf","💐 Flower Bomb","🎈 Balloons"];
+  const ul = document.getElementById("gift-list");
+  ul.innerHTML = "";
+  gifts.forEach(g => {
+    const li = document.createElement("li");
+    li.innerText = g + " ";
+    const btn = document.createElement("button");
+    btn.innerText = "Подарить";
+    btn.onclick = () => alert(`Вы подарили ${g}`);
+    li.appendChild(btn);
+    ul.appendChild(li);
+  });
+}
+
+loadProfile();
+loadGifts();
+</script>
+<script type="module" src="js/theme.js"></script>
+</body>
+</html>
